@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  student       Student?
+  teacher       Teacher?
+}
+
+model Student {
+  id           String   @id @default(uuid())
+  name         String
+  role         Role     @default(STUDENT)
+  rollNo       String
+  batch        Int
+  division     Division
+  academicYear String
+  user         User     @relation(references: [id], fields: [userId])
+  userId       String   @unique
+  group        Group[]
+}
+
+model Teacher {
+  id     String  @id @default(uuid())
+  name   String
+  role   Role    @default(TEACHER)
+  user   User    @relation(references: [id], fields: [userId])
+  userId String  @unique
+  guide  Group[]
+}
+
+model Group {
+  id          String     @id @default(uuid())
+  groupNo     String     @unique
+  title       String
+  description String
+  batch       Int
+  division    Division
+  guide       Teacher    @relation(references: [id], fields: [guideId])
+  guideId     String
+  teamMembers Student[]
+  progress    Progress[]
+  createdAt   DateTime   @default(now())
+}
+
+model Progress {
+  id                  String   @id @default(uuid())
+  percentage          Int      @default(0)
+  progressDescription String
+  createdAt           DateTime @default(now())
+  group               Group    @relation(fields: [groupId], references: [id])
+  groupId             String
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum Division {
+  A
+  B
+}
